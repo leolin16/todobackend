@@ -1,0 +1,79 @@
+version: '3.6'
+
+services:
+  test:
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+    depends_on:
+      - db
+      # - cache
+    volumes:
+      - ~/tmp/cache:/cache
+      - todobackend_build_cache:/build
+    # links: 
+    #   - db
+    environment:
+      DJANGO_SETTINGS_MODULE: todobackend.settings.test
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      TEST_OUTPUT_DIR: /reports
+    # networks:
+    #   - default
+    # networks:
+    #   - leo-net
+  builder:
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+    depends_on:
+      - db
+      # - cache
+    volumes:
+      - ~/tmp/cache:/cache
+      - todobackend_build_cache:/build
+      - ../../target:/wheelhouse
+    entrypoint: "entrypoint.sh"
+    command: ["pip", "wheel", "--no-index", "-f /build", "."]
+  # cache:
+  #   build:
+  #     context: ../../
+  #     dockerfile: docker/dev/Dockerfile
+  #   volumes:
+  #     - ~/tmp/cache:/cache
+  #   entrypoint: "true"
+  #   # networks:
+  #   #   - default
+  #   # networks:
+  #   #   - leo-net
+  # # go to mysql cmd using: mysql -u root -p
+  agent:
+    image: leolin/ansible
+    volumes:
+      - ../../ansible/probe.yml:/ansible/site.yml
+    depends_on:
+      - db
+    environment:
+      PROBE_HOST: "db"
+      PROBE_PORT: "3306"
+
+  db:
+    image: mysql
+    hostname: db
+    expose:
+      - "3306"
+    environment:
+      - "MYSQL_ROOT_PASSWORD=password"
+    # networks:
+    #   - default
+    # networks:
+    #   - leo-net
+# networks:
+#   default:
+#     external:
+#       name: nat
+# networks:
+#   leo-net:
+volumes:
+  todobackend_build_cache:

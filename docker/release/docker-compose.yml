@@ -1,0 +1,102 @@
+version: '3.6'
+
+services:
+  app:
+    build:
+      context: ../../
+      dockerfile: docker/release/Dockerfile
+    depends_on:
+      - db
+    volumes: # same as webroot
+      - todobackend_release_frontend:/var/www/todobackend
+    environment:
+      DJANGO_SETTINGS_MODULE: todobackend.settings.release
+      MYSQL_HOST: db
+      MYSQL_USER: todo
+      MYSQL_PASSWORD: password
+      # DEBUG: "true"
+    command:
+      - uwsgi
+      - "--socket /var/www/todobackend/todobackend.sock"
+      - "--chmod-socket=666"
+      - "--module todobackend.wsgi" # will read from src/todobackend/settings/wsgi.py
+      - "--master"
+      - "--die-on-term"
+  nginx:
+    image: nginx
+    depends_on:
+      - app
+    volumes:
+      - ./todobackend.conf:/etc/nginx/conf.d/todobackend.conf
+      - todobackend_release_frontend:/var/www/todobackend
+    ports:
+      - "8000:8000"
+
+  # webroot:
+  #   build:
+  #     context: ../../
+  #     dockerfile: docker/release/Dockerfile
+  #   volumes:
+  #     - todobackend_release_frontend:/var/www/todobackend
+  #   entrypoint: "true" # ensure container to exist without doing anything
+  
+  test:
+    image: leolin/todobackend-specs
+    depends_on:
+      - nginx
+    environment:
+      URL: http://nginx:8000/todos
+      JUNIT_REPORT_PATH: /reports/acceptance.xml
+      JUNIT_REPORT_STACK: 1
+    command: "--reporter mocha-jenkins-reporter"
+
+    # networks:
+    #   - default
+    # networks:
+    #   - leo-net
+
+  # cache:
+  #   build:
+  #     context: ../../
+  #     dockerfile: docker/dev/Dockerfile
+  #   volumes:
+  #     - ~/tmp/cache:/cache
+  #   entrypoint: "true"
+  #   # networks:
+  #   #   - default
+  #   # networks:
+  #   #   - leo-net
+  # # go to mysql cmd using: mysql -u root -p
+  agent:
+    image: leolin/ansible
+    volumes:
+      - ../../ansible/probe.yml:/ansible/site.yml
+    depends_on:
+      - db
+    environment:
+      PROBE_HOST: "db"
+      PROBE_PORT: "3306"
+
+  db:
+    image: mysql
+    hostname: db
+    expose:
+      - "3306"
+    environment:
+      MYSQL_DATABASE: todobackend
+      MYSQL_USER: todo
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+
+    # networks:
+    #   - default
+    # networks:
+    #   - leo-net
+# networks:
+#   default:
+#     external:
+#       name: nat
+# networks:
+#   leo-net:
+volumes:
+  todobackend_release_frontend:
