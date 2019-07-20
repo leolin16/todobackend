@@ -33,7 +33,7 @@ services:
     volumes:
       - ~/tmp/cache:/cache
       - todobackend_build_cache:/build
-      - ../../target:/wheelhouse
+      # - ../../target:/wheelhouse
     entrypoint: "entrypoint.sh"
     command: ["pip", "wheel", "--no-index", "-f /build", "."]
   # cache:
@@ -49,14 +49,15 @@ services:
   #   #   - leo-net
   # # go to mysql cmd using: mysql -u root -p
   agent:
-    image: leolin/ansible
-    volumes:
-      - ../../ansible/probe.yml:/ansible/site.yml
+    image: leolin16/ansible
+    # volumes:
+    #   - ../../ansible/probe.yml:/ansible/site.yml
     depends_on:
       - db
     environment:
       PROBE_HOST: "db"
       PROBE_PORT: "3306"
+    command: ["probe.yml"]
 
   db:
     image: mysql

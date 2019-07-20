@@ -1,4 +1,4 @@
-FROM leolin/todobackend-base:latest
+FROM leolin16/todobackend-base:latest
 LABEL Author="Leo Lin <leolin@leolin.studio>"
 
 # install dev/build dependencies, libmysqlclient-dev is for avoiding can not find mysql_config error

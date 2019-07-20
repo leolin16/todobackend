@@ -23,11 +23,14 @@ services:
       - "--master"
       - "--die-on-term"
   nginx:
-    image: nginx
+    # image: nginx
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
     depends_on:
       - app
     volumes:
-      - ./todobackend.conf:/etc/nginx/conf.d/todobackend.conf
+      # - ./todobackend.conf:/etc/nginx/conf.d/todobackend.conf
       - todobackend_release_frontend:/var/www/todobackend
     ports:
       - "8000:8000"
@@ -41,14 +44,14 @@ services:
   #   entrypoint: "true" # ensure container to exist without doing anything
   
   test:
-    image: leolin/todobackend-specs
+    image: leolin16/todobackend-specs
     depends_on:
       - nginx
     environment:
       URL: http://nginx:8000/todos
       JUNIT_REPORT_PATH: /reports/acceptance.xml
       JUNIT_REPORT_STACK: 1
-    command: "--reporter mocha-jenkins-reporter"
+    # command: -- --reporter mocha-jenkins-reporter
 
     # networks:
     #   - default
@@ -68,14 +71,15 @@ services:
   #   #   - leo-net
   # # go to mysql cmd using: mysql -u root -p
   agent:
-    image: leolin/ansible
-    volumes:
-      - ../../ansible/probe.yml:/ansible/site.yml
+    image: leolin16/ansible
+    # volumes:
+    #   - ../../ansible/probe.yml:/ansible/site.yml
     depends_on:
       - db
     environment:
       PROBE_HOST: "db"
       PROBE_PORT: "3306"
+    command: ["probe.yml"]
 
   db:
     image: mysql
