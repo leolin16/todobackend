@@ -9,7 +9,8 @@ services:
       - db
       # - cache
     volumes:
-      - ~/tmp/cache:/cache
+      # - ~/tmp/cache:/cache
+      - todobackend_inter_cache:/cache
       - todobackend_build_cache:/build
     # links: 
     #   - db
@@ -31,7 +32,7 @@ services:
       - db
       # - cache
     volumes:
-      - ~/tmp/cache:/cache
+      # - todobackend_inter_cache:/cache
       - todobackend_build_cache:/build
       # - ../../target:/wheelhouse
     entrypoint: "entrypoint.sh"
@@ -78,3 +79,6 @@ services:
 #   leo-net:
 volumes:
   todobackend_build_cache:
+    driver: local
+  todobackend_inter_cache:
+    external: true

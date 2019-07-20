@@ -104,3 +104,4 @@ services:
 #   leo-net:
 volumes:
   todobackend_release_frontend:
+    driver: local
