@@ -86,7 +86,7 @@ clean:
 	${INFO} "Destroying development environment with volumes..."
 	@ docker-compose -p $(DEV_PROJECT) -f $(DEV_COMPOSE_FILE) down -v
 	${INFO} "Destroying release environment with volumes..."
-	@ docker-compose -p $(DEV_PROJECT) -f $(REL_COMPOSE_FILE) down -v
+	@ docker-compose -p $(REL_PROJECT) -f $(REL_COMPOSE_FILE) down -v
 	${INFO} "Removing dangling images"
 	@ docker images -q -f dangling=true -f label=application=$(REPO_NAME) | xargs -I ARGS docker rmi -f ARGS
 	@ docker system prune -f
